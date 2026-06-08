@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fake / Real Image Detector</title>
+
+  <!-- Google Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+      scroll-behavior:smooth;
+    }
+
+    body{
+      font-family:'Poppins', sans-serif;
+      min-height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      overflow-x:hidden;
+
+      /* Background Image */
+      background:
+      linear-gradient(rgba(196, 88, 88, 0.65), rgba(0,0,0,0.7)),
+      url('https://www.shutterstock.com/image-illustration/artificial-intelligence-deep-machine-learning-260nw-2322921091.jpg');
+
+      background-size:cover;
+      background-position:center;
+      background-repeat:no-repeat;
+      background-attachment:fixed;
+      animation:bgZoom 20s infinite alternate ease-in-out;
+    }
+
+    /* Background animation */
+    @keyframes bgZoom{
+      0%{
+        background-size:100%;
+      }
+      100%{
+        background-size:110%;
+      }
+    }
+
+    /* Floating glowing circles */
+    .circle{
+      position:absolute;
+      border-radius:50%;
+      filter:blur(100px);
+      z-index:0;
+      animation:float 6s infinite ease-in-out alternate;
+    }
+
+    .circle1{
+      width:250px;
+      height:250px;
+      background:#00d9ff80;
+      top:5%;
+      left:5%;
+    }
+
+    .circle2{
+      width:300px;
+      height:300px;
+      background:#8a2be280;
+      bottom:5%;
+      right:5%;
+      animation-delay:2s;
+    }
+
+    @keyframes float{
+      from{
+        transform:translateY(0px);
+      }
+      to{
+        transform:translateY(30px);
+      }
+    }
+
+    .container{
+      position:relative;
+      z-index:1;
+      width:90%;
+      max-width:700px;
+
+      background:rgba(255,255,255,0.08);
+      backdrop-filter:blur(15px);
+
+      border:1px solid rgba(255,255,255,0.15);
+
+      border-radius:30px;
+
+      padding:45px;
+
+      text-align:center;
+
+      box-shadow:0 15px 50px rgba(0,0,0,0.5);
+
+      transition:0.4s ease;
+
+      animation:fadeIn 1s ease;
+    }
+
+    .container:hover{
+      transform:translateY(-6px) scale(1.01);
+      box-shadow:0 25px 60px rgba(0,0,0,0.6);
+    }
+
+    @keyframes fadeIn{
+      from{
+        opacity:0;
+        transform:translateY(40px);
+      }
+      to{
+        opacity:1;
+        transform:translateY(0);
+      }
+    }
+
+    h1{
+      color:white;
+      font-size:42px;
+      margin-bottom:10px;
+      font-weight:700;
+      letter-spacing:1px;
+      animation:slideDown 1s ease;
+    }
+
+    @keyframes slideDown{
+      from{
+        opacity:0;
+        transform:translateY(-30px);
+      }
+      to{
+        opacity:1;
+        transform:translateY(0);
+      }
+    }
+
+    p{
+      color:#e4e4e4;
+      margin-bottom:30px;
+      font-size:15px;
+      line-height:1.7;
+    }
+
+    /* Upload Box */
+    .upload-box{
+      border:2px dashed rgba(255,255,255,0.4);
+      border-radius:25px;
+      padding:50px 20px;
+      cursor:pointer;
+      transition:0.4s ease;
+      background:rgba(255,255,255,0.05);
+      position:relative;
+      overflow:hidden;
+    }
+
+    .upload-box::before{
+      content:"";
+      position:absolute;
+      top:0;
+      left:-100%;
+      width:100%;
+      height:100%;
+      background:linear-gradient(
+        120deg,
+        transparent,
+        rgba(255,255,255,0.2),
+        transparent
+      );
+      transition:0.7s;
+    }
+
+    .upload-box:hover::before{
+      left:100%;
+    }
+
+    .upload-box:hover{
+      border-color:#00d9ff;
+      transform:scale(1.03);
+      background:rgba(255,255,255,0.1);
+      box-shadow:0 0 25px rgba(0,217,255,0.3);
+    }
+
+    .upload-icon{
+      font-size:60px;
+      margin-bottom:15px;
+      animation:bounce 2s infinite;
+    }
+
+    @keyframes bounce{
+      0%,100%{
+        transform:translateY(0);
+      }
+      50%{
+        transform:translateY(-10px);
+      }
+    }
+
+    .upload-box h3{
+      color:white;
+      font-size:24px;
+      margin-bottom:10px;
+    }
+
+    .upload-box span{
+      color:#d6d6d6;
+      font-size:14px;
+    }
+
+    /* Image Preview */
+    #preview{
+      width:100%;
+      max-height:350px;
+      object-fit:cover;
+      border-radius:20px;
+      margin-top:25px;
+      display:none;
+      border:2px solid rgba(255,255,255,0.15);
+      box-shadow:0 10px 30px rgba(0,0,0,0.4);
+      transition:0.4s ease;
+      animation:fadeIn 0.6s ease;
+    }
+
+    #preview:hover{
+      transform:scale(1.02);
+      box-shadow:0 15px 40px rgba(0,0,0,0.6);
+    }
+
+    /* Button */
+    button{
+      margin-top:25px;
+      padding:15px 38px;
+      border:none;
+      border-radius:50px;
+
+      background:linear-gradient(135deg,#00d9ff,#006eff);
+
+      color:white;
+
+      font-size:16px;
+      font-weight:600;
+
+      cursor:pointer;
+
+      transition:0.4s ease;
+
+      box-shadow:0 8px 25px rgba(0,217,255,0.4);
+
+      position:relative;
+      overflow:hidden;
+    }
+
+    button::before{
+      content:"";
+      position:absolute;
+      top:0;
+      left:-100%;
+      width:100%;
+      height:100%;
+      background:rgba(255,255,255,0.2);
+      transition:0.5s;
+    }
+
+    button:hover::before{
+      left:100%;
+    }
+
+    button:hover{
+      transform:translateY(-5px) scale(1.03);
+      box-shadow:0 15px 35px rgba(0,217,255,0.7);
+    }
+
+    button:active{
+      transform:scale(0.96);
+    }
+
+    button:disabled{
+      opacity:0.7;
+      cursor:not-allowed;
+    }
+
+    /* Loading */
+    #loading{
+      display:none;
+      color:white;
+      margin-top:18px;
+      font-size:15px;
+      animation:pulse 1.2s infinite;
+    }
+
+    @keyframes pulse{
+      0%{
+        opacity:0.4;
+      }
+      50%{
+        opacity:1;
+      }
+      100%{
+        opacity:0.4;
+      }
+    }
+
+    /* Result */
+    #result-box{
+      margin-top:30px;
+      padding:25px;
+      border-radius:20px;
+      display:none;
+      font-size:25px;
+      font-weight:700;
+      animation:pop 0.6s ease;
+      transition:0.4s ease;
+    }
+
+    #result-box:hover{
+      transform:scale(1.02);
+    }
+
+    @keyframes pop{
+      from{
+        transform:scale(0.7);
+        opacity:0;
+      }
+      to{
+        transform:scale(1);
+        opacity:1;
+      }
+    }
+
+    .real{
+      background:rgba(46,204,113,0.18);
+      border:1px solid rgba(46,204,113,0.4);
+      color:#7dffb1;
+      box-shadow:0 0 20px rgba(46,204,113,0.3);
+    }
+
+    .fake{
+      background:rgba(231,76,60,0.18);
+      border:1px solid rgba(231,76,60,0.4);
+      color:#ff9e9e;
+      box-shadow:0 0 20px rgba(231,76,60,0.3);
+    }
+
+    small{
+      display:block;
+      margin-top:10px;
+      font-size:14px;
+      font-weight:400;
+      color:#f2f2f2;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar{
+      width:10px;
+    }
+
+    ::-webkit-scrollbar-track{
+      background:#111;
+    }
+
+    ::-webkit-scrollbar-thumb{
+      background:#00d9ff;
+      border-radius:20px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover{
+      background:#008cff;
+    }
+
+    /* Responsive */
+    @media(max-width:768px){
+
+      .container{
+        padding:30px 20px;
+      }
+
+      h1{
+        font-size:30px;
+      }
+
+      .upload-box{
+        padding:35px 15px;
+      }
+
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <!-- Background glowing circles -->
+  <div class="circle circle1"></div>
+  <div class="circle circle2"></div>
+
+  <div class="container">
+
+    <h1>Fake / Real Image Detector</h1>
+
+    <p>
+      Upload an image and let our AI system detect whether the image is Real or AI Generated with confidence analysis.
+    </p>
+
+    <!-- Upload Box -->
+    <div class="upload-box" onclick="document.getElementById('fileInput').click()">
+
+      <div class="upload-icon">🔍</div>
+
+      <h3>Upload Your Image</h3>
+
+      <span>Click here to browse images</span>
+
+      <input
+        type="file"
+        id="fileInput"
+        accept="image/*"
+        style="display:none"
+        onchange="previewImage(event)"
+      >
+
+    </div>
+
+    <!-- Preview -->
+    <img id="preview" alt="Preview Image">
+
+    <!-- Button -->
+    <button onclick="analyzeImage()" id="analyzeBtn" style="display:none">
+      Analyze Image
+    </button>
+
+    <!-- Loading -->
+    <p id="loading">🔍 AI is analyzing your image...</p>
+
+    <!-- Result -->
+    <div id="result-box"></div>
+
+  </div>
+
+  <script>
+
+    let selectedFile = null;
+
+    function previewImage(event){
+
+      selectedFile = event.target.files[0];
+
+      const reader = new FileReader();
+
+      reader.onload = function(e){
+
+        const preview = document.getElementById('preview');
+
+        preview.src = e.target.result;
+
+        preview.style.display = 'block';
+
+        document.getElementById('analyzeBtn').style.display = 'inline-block';
+
+        document.getElementById('result-box').style.display = 'none';
+
+      };
+
+      reader.readAsDataURL(selectedFile);
+    }
+
+    async function analyzeImage(){
+
+      if(!selectedFile) return;
+
+      document.getElementById('loading').style.display = 'block';
+
+      document.getElementById('analyzeBtn').disabled = true;
+
+      document.getElementById('result-box').style.display = 'none';
+
+      const formData = new FormData();
+
+      formData.append('image', selectedFile);
+
+      try{
+
+        const response = await fetch('/predict', {
+          method:'POST',
+          body:formData
+        });
+
+        const data = await response.json();
+
+        const box = document.getElementById('result-box');
+
+        box.className = data.result === 'REAL'
+        ? 'real'
+        : 'fake';
+
+        box.innerHTML = `
+          ${data.result === 'REAL'
+          ? '✅ REAL IMAGE'
+          : '❌ FAKE IMAGE'}
+
+          <small>
+            Confidence Level : ${data.confidence}%
+          </small>
+        `;
+
+        box.style.display = 'block';
+
+        /* Smooth Scroll */
+        box.scrollIntoView({
+          behavior:'smooth'
+        });
+
+      }catch(err){
+
+        alert('Something went wrong. Make sure the server is running.');
+
+      }
+
+      document.getElementById('loading').style.display = 'none';
+
+      document.getElementById('analyzeBtn').disabled = false;
+    }
+
+  </script>
+
+</body>
+</html>
